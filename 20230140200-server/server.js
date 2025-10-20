@@ -13,6 +13,11 @@ app.use((req, res, next) => {
   next();
 });
 
+//Import presensi routes
+const presensiRoutes = require('./routes/presensi');
+app.use('/presensi', presensiRoutes);
+
+
 // ==============================
 // Data dummy
 // ==============================
