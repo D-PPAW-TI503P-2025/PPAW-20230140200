@@ -8,6 +8,8 @@ const morgan = require("morgan");
 const presensiRoutes = require("./routes/presensi");
 const reportRoutes = require("./routes/reports");
 
+
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -26,3 +28,4 @@ app.use("/api/reports", reportRoutes);
 app.listen(PORT, () => {
   console.log(`Express server running at http://localhost:${PORT}/`);
 });
+

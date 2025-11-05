@@ -1,13 +1,13 @@
-// Middleware untuk menambahkan data user dummy
+// middleware/permissionMiddleware.js
 exports.addUserData = (req, res, next) => {
-  console.log('Middleware: Menambahkan data user dari request body...');
+  const body = req.body || {};
+  const headers = req.headers || {};
 
   req.user = {
-    id: req.body.userId || 123,                 
-    nama: req.body.nama || 'Admin Default',     
-    role: req.body.role || 'admin'              
+    id: body.userId || headers['x-user-id'] || 123,
+    nama: body.nama || headers['x-user-nama'] || 'Admin',
+    role: body.role || headers['x-user-role'] || 'admin'
   };
-
   next();
 };
 

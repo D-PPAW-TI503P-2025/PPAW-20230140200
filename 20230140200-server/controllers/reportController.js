@@ -1,53 +1,41 @@
-"use strict";
-
 const { Presensi } = require("../models");
 const { Op } = require("sequelize");
+const { format } = require("date-fns-tz");
 const timeZone = "Asia/Jakarta";
 
 exports.getDailyReport = async (req, res) => {
   try {
-    const { nama, tanggal } = req.query; // Contoh: ?nama=Yasin&tanggal=2025-11-01
-    let options = { where: {} };
+    const { tanggalMulai, tanggalSelesai } = req.query;
 
-    // 🔍 Filter berdasarkan nama (opsional)
-    if (nama) {
-      options.where.nama = {
-        [Op.like]: `%${nama}%`,
-      };
+    if (!tanggalMulai || !tanggalSelesai) {
+      return res.status(400).json({ message: "Tanggal mulai dan selesai wajib diisi." });
     }
 
-    // 🔍 Filter berdasarkan tanggal (opsional)
-    if (tanggal) {
-      const startOfDay = new Date(`${tanggal}T00:00:00.000Z`);
-      const endOfDay = new Date(`${tanggal}T23:59:59.999Z`);
-      options.where.checkIn = { [Op.between]: [startOfDay, endOfDay] };
+    const isValidDate = (val) => !isNaN(Date.parse(val));
+    if (!isValidDate(tanggalMulai) || !isValidDate(tanggalSelesai)) {
+      return res.status(400).json({ message: "Format tanggal tidak valid." });
     }
 
-    // Urutkan dari checkIn terbaru
-    options.order = [["checkIn", "DESC"]];
-
-    // Ambil data dari database
-    const records = await Presensi.findAll(options);
-
-    if (records.length === 0) {
-      return res.status(404).json({
-        message: "Tidak ada data presensi ditemukan untuk filter yang diberikan.",
-      });
-    }
-
-    // 🕒 Format tanggal laporan (1/11/2025)
-    const reportDate = new Date().toLocaleDateString("id-ID", { timeZone });
-
-    // Kirim hasil sesuai format yang kamu mau
-    res.json({
-      reportDate: reportDate,
-      total: records.length,
-      data: records, // biarkan data mentah tanpa format waktu agar seperti contohmu
+    const data = await Presensi.findAll({
+      where: {
+        checkIn: {
+          [Op.between]: [new Date(tanggalMulai), new Date(tanggalSelesai)]
+        }
+      },
+      order: [["checkIn", "ASC"]]
     });
+
+    const formatted = data.map((item) => ({
+      id: item.id,
+      userId: item.userId,
+      nama: item.nama,
+      checkIn: item.checkIn ? format(item.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }) : null,
+      checkOut: item.checkOut ? format(item.checkOut, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }) : null
+    }));
+
+    res.json({ message: "Laporan presensi", data: formatted });
+
   } catch (error) {
-    res.status(500).json({
-      message: "Gagal mengambil laporan presensi.",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
-};  
+};

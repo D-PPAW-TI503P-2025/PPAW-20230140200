@@ -1,4 +1,5 @@
 const { Presensi } = require("../models");
+const { Op } = require("sequelize");
 const { format } = require("date-fns-tz");
 const timeZone = "Asia/Jakarta";
 
@@ -31,13 +32,11 @@ exports.CheckIn = async (req, res) => {
     const waktuSekarang = new Date();
 
     const existingRecord = await Presensi.findOne({
-      where: { userId: userId, checkOut: null },
+      where: { userId, checkOut: null },
     });
 
     if (existingRecord) {
-      return res
-        .status(400)
-        .json({ message: "Anda sudah melakukan check-in hari ini." });
+      return res.status(400).json({ message: "Anda sudah check-in hari ini." });
     }
 
     const newRecord = await Presensi.create({
@@ -47,11 +46,11 @@ exports.CheckIn = async (req, res) => {
     });
 
     res.status(201).json({
-      message: `Halo ${userName}, check-in berhasil pukul ${format(waktuSekarang, "HH:mm:ss", { timeZone })} WIB`,
+      message: `Check-in berhasil pukul ${format(waktuSekarang, "HH:mm:ss", { timeZone })} WIB`,
       data: newRecord,
     });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
 
@@ -62,22 +61,22 @@ exports.CheckOut = async (req, res) => {
     const waktuSekarang = new Date();
 
     const recordToUpdate = await Presensi.findOne({
-      where: { userId: userId, checkOut: null },
+      where: { userId, checkOut: null },
     });
 
     if (!recordToUpdate) {
-      return res.status(404).json({ message: "Belum ada check-in yang aktif." });
+      return res.status(404).json({ message: "Belum ada check-in aktif." });
     }
 
     recordToUpdate.checkOut = waktuSekarang;
     await recordToUpdate.save();
 
     res.json({
-      message: `Check-out berhasil ${userName} pukul ${format(waktuSekarang, "HH:mm:ss", { timeZone })} WIB`,
+      message: `Check-out berhasil pukul ${format(waktuSekarang, "HH:mm:ss", { timeZone })} WIB`,
       data: recordToUpdate,
     });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
 
@@ -87,20 +86,29 @@ exports.updatePresensi = async (req, res) => {
     const presensiId = req.params.id;
     const { checkIn, checkOut, nama } = req.body;
 
-    const recordToUpdate = await Presensi.findByPk(presensiId);
-    if (!recordToUpdate) {
-      return res.status(404).json({ message: "Catatan presensi tidak ditemukan." });
+    const isValidDate = (val) => !isNaN(Date.parse(val));
+    if (checkIn !== undefined && !isValidDate(checkIn)) {
+      return res.status(400).json({ message: "Format tanggal checkIn tidak valid" });
+    }
+    if (checkOut !== undefined && !isValidDate(checkOut)) {
+      return res.status(400).json({ message: "Format tanggal checkOut tidak valid" });
+    }
+    if (checkIn === undefined && checkOut === undefined && nama === undefined) {
+      return res.status(400).json({ message: "Tidak ada data yang diupdate" });
     }
 
-    recordToUpdate.checkIn = checkIn || recordToUpdate.checkIn;
-    recordToUpdate.checkOut = checkOut || recordToUpdate.checkOut;
-    recordToUpdate.nama = nama || recordToUpdate.nama;
+    const recordToUpdate = await Presensi.findByPk(presensiId);
+    if (!recordToUpdate) return res.status(404).json({ message: "Data tidak ditemukan" });
+
+    if (checkIn !== undefined) recordToUpdate.checkIn = checkIn;
+    if (checkOut !== undefined) recordToUpdate.checkOut = checkOut;
+    if (nama !== undefined) recordToUpdate.nama = nama;
 
     await recordToUpdate.save();
 
-    res.json({ message: "Data diperbarui.", data: recordToUpdate });
+    res.json({ message: "Data presensi diperbarui", data: recordToUpdate });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
 
@@ -110,13 +118,56 @@ exports.deletePresensi = async (req, res) => {
     const presensiId = req.params.id;
     const record = await Presensi.findByPk(presensiId);
 
-    if (!record) {
-      return res.status(404).json({ message: "Data tidak ditemukan." });
-    }
+    if (!record) return res.status(404).json({ message: "Data tidak ditemukan" });
 
     await record.destroy();
-    res.json({ message: "Data berhasil dihapus." });
+    res.json({ message: "Data berhasil dihapus" });
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan pada server", error: error.message });
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
+  }
+};
+
+// ===================== SEARCH BY NAMA =====================
+exports.searchByName = async (req, res) => {
+  try {
+    const { nama } = req.body; // POST body
+    if (!nama) return res.status(400).json({ message: "Nama wajib diisi" });
+
+    const data = await Presensi.findAll({
+      where: { nama: { [Op.like]: `%${nama}%` } },
+    });
+
+    res.json({ message: "Hasil pencarian nama", data });
+  } catch (error) {
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
+  }
+};
+
+// ===================== SEARCH BY TANGGAL =====================
+exports.searchByDate = async (req, res) => {
+  try {
+    const { tanggalMulai, tanggalSelesai } = req.body; // POST body
+
+    if (!tanggalMulai || !tanggalSelesai) {
+      return res.status(400).json({ message: "Tanggal mulai & selesai wajib diisi" });
+    }
+
+    const isValidDate = (val) => !isNaN(Date.parse(val));
+    if (!isValidDate(tanggalMulai) || !isValidDate(tanggalSelesai)) {
+      return res.status(400).json({ message: "Format tanggal tidak valid" });
+    }
+
+    const data = await Presensi.findAll({
+      where: {
+        checkIn: {
+          [Op.between]: [new Date(tanggalMulai), new Date(tanggalSelesai)]
+        }
+      },
+      order: [["checkIn", "ASC"]]
+    });
+
+    res.json({ message: "Hasil pencarian tanggal", data });
+  } catch (error) {
+    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
