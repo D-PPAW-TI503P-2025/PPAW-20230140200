@@ -1,51 +1,52 @@
 "use strict";
 
 const { Presensi } = require("../models");
-const { format } = require("date-fns-tz");
 const { Op } = require("sequelize");
 const timeZone = "Asia/Jakarta";
 
 exports.getDailyReport = async (req, res) => {
   try {
-    // Ambil tanggal hari ini (zona waktu Asia/Jakarta)
-    const today = format(new Date(), "yyyy-MM-dd", { timeZone });
+    const { nama, tanggal } = req.query; // Contoh: ?nama=Yasin&tanggal=2025-11-01
+    let options = { where: {} };
 
-    // Hitung awal dan akhir hari (00:00:00 - 23:59:59)
-    const startOfDay = new Date(`${today}T00:00:00`);
-    const endOfDay = new Date(`${today}T23:59:59`);
+    // 🔍 Filter berdasarkan nama (opsional)
+    if (nama) {
+      options.where.nama = {
+        [Op.like]: `%${nama}%`,
+      };
+    }
 
-    // Ambil data dari database menggunakan Sequelize
-    const dailyData = await Presensi.findAll({
-      where: {
-        checkIn: {
-          [Op.between]: [startOfDay, endOfDay],
-        },
-      },
-      order: [["checkIn", "ASC"]],
-    });
+    // 🔍 Filter berdasarkan tanggal (opsional)
+    if (tanggal) {
+      const startOfDay = new Date(`${tanggal}T00:00:00.000Z`);
+      const endOfDay = new Date(`${tanggal}T23:59:59.999Z`);
+      options.where.checkIn = { [Op.between]: [startOfDay, endOfDay] };
+    }
 
-    // Format hasil untuk dikirim ke response
-    const formattedData = dailyData.map(record => ({
-      id: record.id,
-      userId: record.userId,
-      nama: record.nama,
-      checkIn: format(record.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }),
-      checkOut: record.checkOut
-        ? format(record.checkOut, "yyyy-MM-dd HH:mm:ssXXX", { timeZone })
-        : null,
-    }));
+    // Urutkan dari checkIn terbaru
+    options.order = [["checkIn", "DESC"]];
 
-    // Kirim hasil ke client
+    // Ambil data dari database
+    const records = await Presensi.findAll(options);
+
+    if (records.length === 0) {
+      return res.status(404).json({
+        message: "Tidak ada data presensi ditemukan untuk filter yang diberikan.",
+      });
+    }
+
+    // 🕒 Format tanggal laporan (1/11/2025)
+    const reportDate = new Date().toLocaleDateString("id-ID", { timeZone });
+
+    // Kirim hasil sesuai format yang kamu mau
     res.json({
-      message: `Laporan presensi tanggal ${today}`,
-      total: formattedData.length,
-      data: formattedData,
+      reportDate: reportDate,
+      total: records.length,
+      data: records, // biarkan data mentah tanpa format waktu agar seperti contohmu
     });
-
   } catch (error) {
-    console.error("❌ Error getDailyReport:", error);
     res.status(500).json({
-      message: "Terjadi kesalahan saat mengambil laporan presensi",
+      message: "Gagal mengambil laporan presensi.",
       error: error.message,
     });
   }
