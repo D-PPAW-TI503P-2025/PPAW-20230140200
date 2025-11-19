@@ -27,9 +27,10 @@ app.get("/", (req, res) => {
 });
 
 // Gunakan router sesuai endpoint-nya
-app.use("/presensi", presensiRoutes);
-app.use("/reports", reportRoutes);
-app.use("/auth", authRoutes);
+app.use("/api/presensi", presensiRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/auth", authRoutes);
+
 
 // ===== Start Server =====
 app.listen(PORT, () => {
