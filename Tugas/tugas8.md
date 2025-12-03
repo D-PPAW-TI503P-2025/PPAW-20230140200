@@ -18,3 +18,14 @@ check out
 Login gagal
 ![alt text](image-12.png)
 
+Isi token
+![alt text](image-13.png)
+
+Post Man Check in
+![alt text](image-14.png)
+
+Check out
+![alt text](image-15.png)
+
+Database
+![alt text](image-16.png)
