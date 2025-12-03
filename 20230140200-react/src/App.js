@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import DashboardPage from './components/DashboardPage';
+import AttendancePage from './components/AttendancePage';
+import ReportPage from './components/ReportPage';
 
 function App() {
   return (
     <Router>
       <div>
-        {/* Navigasi ini bisa dihapus jika tidak diperlukan */}
+       
         <nav className="p-4 bg-gray-100">
           <Link to="/login" className="mr-4">Login</Link>
           <Link to="/register">Register</Link>
@@ -18,7 +20,10 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/Attendance" element={<AttendancePage />} />
+          <Route path="/Report" element={<ReportPage />} />
           <Route path="/" element={<LoginPage />} /> 
+          
         </Routes>
       </div>
     </Router>

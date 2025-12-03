@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const { format } = require("date-fns-tz");
 const timeZone = "Asia/Jakarta";
 
-// ===================== GET ALL =====================
+
 exports.getAllPresensi = async (req, res) => {
   try {
     const data = await Presensi.findAll();
@@ -13,7 +13,7 @@ exports.getAllPresensi = async (req, res) => {
   }
 };
 
-// ===================== GET BY ID =====================
+
 exports.getPresensiById = async (req, res) => {
   try {
     const id = req.params.id;
@@ -25,8 +25,8 @@ exports.getPresensiById = async (req, res) => {
   }
 };
 
-// ===================== CHECK IN =====================
-exports.CheckIn = async (req, res) => {
+
+exports.checkIn = async (req, res) => {
   try {
     const { id: userId, nama: userName } = req.user;
     const waktuSekarang = new Date();
@@ -54,8 +54,8 @@ exports.CheckIn = async (req, res) => {
   }
 };
 
-// ===================== CHECK OUT =====================
-exports.CheckOut = async (req, res) => {
+
+exports.checkOut = async (req, res) => {
   try {
     const { id: userId, nama: userName } = req.user;
     const waktuSekarang = new Date();
@@ -80,7 +80,7 @@ exports.CheckOut = async (req, res) => {
   }
 };
 
-// ===================== UPDATE =====================
+
 exports.updatePresensi = async (req, res) => {
   try {
     const presensiId = req.params.id;
@@ -93,9 +93,6 @@ exports.updatePresensi = async (req, res) => {
     if (checkOut !== undefined && !isValidDate(checkOut)) {
       return res.status(400).json({ message: "Format tanggal checkOut tidak valid" });
     }
-    if (checkIn === undefined && checkOut === undefined && nama === undefined) {
-      return res.status(400).json({ message: "Tidak ada data yang diupdate" });
-    }
 
     const recordToUpdate = await Presensi.findByPk(presensiId);
     if (!recordToUpdate) return res.status(404).json({ message: "Data tidak ditemukan" });
@@ -105,14 +102,13 @@ exports.updatePresensi = async (req, res) => {
     if (nama !== undefined) recordToUpdate.nama = nama;
 
     await recordToUpdate.save();
-
     res.json({ message: "Data presensi diperbarui", data: recordToUpdate });
   } catch (error) {
     res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
   }
 };
 
-// ===================== DELETE =====================
+
 exports.deletePresensi = async (req, res) => {
   try {
     const presensiId = req.params.id;
@@ -127,10 +123,10 @@ exports.deletePresensi = async (req, res) => {
   }
 };
 
-// ===================== SEARCH BY NAMA =====================
+
 exports.searchByName = async (req, res) => {
   try {
-    const { nama } = req.body; // POST body
+    const { nama } = req.body;
     if (!nama) return res.status(400).json({ message: "Nama wajib diisi" });
 
     const data = await Presensi.findAll({
@@ -143,10 +139,10 @@ exports.searchByName = async (req, res) => {
   }
 };
 
-// ===================== SEARCH BY TANGGAL =====================
+
 exports.searchByDate = async (req, res) => {
   try {
-    const { tanggalMulai, tanggalSelesai } = req.body; // POST body
+    const { tanggalMulai, tanggalSelesai } = req.body;
 
     if (!tanggalMulai || !tanggalSelesai) {
       return res.status(400).json({ message: "Tanggal mulai & selesai wajib diisi" });
