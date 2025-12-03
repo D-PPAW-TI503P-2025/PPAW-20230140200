@@ -1,49 +1,68 @@
-/* Default style dari project React */
-body {
+/* ============================
+   🧼 RESET & BASE STYLE
+   ============================ */
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  font-family: "Inter", Arial, sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
 }
 
 /* ============================
-   🌍 TAMBAHAN WAJIB UNTUK LEAFLET
+   🗺️ LEAFLET MAP
    ============================ */
 @import "leaflet/dist/leaflet.css";
 
-/* Fix tampilan peta agar tidak mengecil */
 .leaflet-container {
   width: 100%;
   height: 350px;
-  border-radius: 8px;
-  margin-top: 10px;
+  border-radius: 10px;
+  margin: 20px 0;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.15);
 }
 
-/* Optional – styling tombol */
+/* ============================
+   🔘 BUTTON STYLE
+   ============================ */
 button {
-  padding: 10px 16px;
-  background-color: #007bff;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #4a90e2, #357ABD);
   border: none;
   color: white;
   cursor: pointer;
-  border-radius: 6px;
-  margin-top: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, #357ABD, #2f6cb1);
+  transform: translateY(-2px);
 }
 
-/* Styling pesan success/error */
+button:active {
+  transform: scale(0.97);
+}
+
+/* ============================
+   📝 TEXT (Success / Error)
+   ============================ */
 p {
   font-size: 15px;
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+p.success {
+  color: #28a745;
+}
+
+p.error {
+  color: #dc3545;
 }

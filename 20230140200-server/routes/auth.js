@@ -11,4 +11,6 @@ router.post('/register-admin', authController.registerAdmin);
 // Login
 router.post('/login', authController.login);
 
+
+
 module.exports = router;
