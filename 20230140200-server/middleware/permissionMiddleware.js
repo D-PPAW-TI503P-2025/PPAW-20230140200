@@ -1,3 +1,4 @@
+
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -22,23 +23,10 @@ exports.authenticateToken = (req, res, next) => {
   });
 };
 
-
 exports.isAdmin = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
-    return res
-      .status(403)
-      .json({ message: "Akses ditolak. Hanya untuk admin." });
+    res.status(403).json({ message: "Akses ditolak. Hanya untuk admin." });
   }
 };
-
-
-exports.addUserData = (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  
-  next();
-};
-

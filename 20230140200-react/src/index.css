@@ -1,3 +1,4 @@
+/* Default style dari project React */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +11,39 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* ============================
+   🌍 TAMBAHAN WAJIB UNTUK LEAFLET
+   ============================ */
+@import "leaflet/dist/leaflet.css";
+
+/* Fix tampilan peta agar tidak mengecil */
+.leaflet-container {
+  width: 100%;
+  height: 350px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* Optional – styling tombol */
+button {
+  padding: 10px 16px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Styling pesan success/error */
+p {
+  font-size: 15px;
+  margin-top: 10px;
 }

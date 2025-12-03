@@ -1,26 +1,45 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const presensiController = require('../controllers/presensiController');
 
-const { addUserData, authenticateToken, isAdmin } = require('../middleware/permissionMiddleware');
+const presensiController = require("../controllers/presensiController");
+const laporanController = require("../controllers/reportController");
 
-console.log("checkIn:", presensiController.checkIn);
-console.log("checkOut:", presensiController.checkOut);
-console.log("addUserData:", addUserData);
+const permissionMiddleware = require("../middleware/permissionMiddleware");
 
+// CHECK-IN
+router.post(
+  "/check-in",
+  permissionMiddleware.authenticateToken,
+  presensiController.CheckIn
+);
 
+// CHECK-OUT
+router.post(
+  "/check-out",
+  permissionMiddleware.authenticateToken,
+  presensiController.CheckOut
+);
 
-router.get('/', presensiController.getAllPresensi);
-router.get('/:id', presensiController.getPresensiById);
+// UPDATE PRESENSI
+router.patch(
+  "/:id",
+  permissionMiddleware.authenticateToken,
+  presensiController.updatePresensi
+);
 
+// DELETE PRESENSI
+router.delete(
+  "/:id",
+  permissionMiddleware.authenticateToken,
+  presensiController.deletePresensi
+);
 
-router.post('/check-in', addUserData, presensiController.checkIn);
-router.post('/check-out', addUserData, presensiController.checkOut);
-router.put('/update/:id', addUserData, presensiController.updatePresensi);
-router.delete('/delete/:id', addUserData, presensiController.deletePresensi);
-
-
-router.post('/search', addUserData, presensiController.searchByName);
-router.post('/search-date', addUserData, presensiController.searchByDate);
+// LAPORAN HARIAN (ADMIN)
+router.get(
+  "/laporan",
+  permissionMiddleware.authenticateToken,
+  permissionMiddleware.isAdmin,
+  laporanController.getDailyReport
+);
 
 module.exports = router;

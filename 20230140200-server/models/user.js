@@ -1,14 +1,17 @@
-'use strict';
-const { Model } = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // Relasi User -> Presensi (One to Many)
-      User.hasMany(models.Presensi, {
-        foreignKey: 'userId',
-        as: 'presensi'
-      });
+      if (models.Presensi) {
+        User.hasMany(models.Presensi, {
+          foreignKey: "userId",
+          as: "presensi",
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
+        });
+      }
     }
   }
 
@@ -18,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+
       email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -26,24 +30,23 @@ module.exports = (sequelize, DataTypes) => {
           isEmail: true,
         },
       },
+
       password: {
         type: DataTypes.STRING,
         allowNull: false,
       },
+
       role: {
-        type: DataTypes.ENUM('mahasiswa', 'admin'),
+        type: DataTypes.ENUM("mahasiswa", "admin"),
         allowNull: false,
-        defaultValue: 'mahasiswa',
-        validate: {
-          isIn: [['mahasiswa', 'admin']],
-        },
+        defaultValue: "mahasiswa",
       },
     },
     {
       sequelize,
-      modelName: 'User',
-      tableName: 'users',
-      timestamps: false,
+      modelName: "User",
+      tableName: "users",
+      timestamps: true,   
     }
   );
 

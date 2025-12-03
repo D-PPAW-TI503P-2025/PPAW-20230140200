@@ -1,10 +1,10 @@
-'use strict';
-const { Model } = require('sequelize');
-const { Sequelize } = require('.');
+"use strict";
+const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class Presensi extends Model {
     static associate(models) {
+
       Presensi.belongsTo(models.User, {
         foreignKey: "userId",
         as: "user",
@@ -15,34 +15,41 @@ module.exports = (sequelize, DataTypes) => {
   Presensi.init(
     {
       userId: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Users",
+          model: "users",
           key: "id",
         },
         onUpdate: "CASCADE",
-        onDelete: "CASCADE"
+        onDelete: "CASCADE",
+      },
 
-      },
-      nama: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       checkIn: {
         type: DataTypes.DATE,
         allowNull: false,
       },
+
       checkOut: {
         type: DataTypes.DATE,
-        allowNull: true, // bisa null
-      }
+        allowNull: true,
+      },
+
+      // ➕ Tambahan sesuai modul (TIDAK mengubah coding lama)
+      latitude: {
+        type: DataTypes.DECIMAL(10, 8),
+        allowNull: true, // Jika user menolak izin lokasi
+      },
+
+      longitude: {
+        type: DataTypes.DECIMAL(11, 8),
+        allowNull: true,
+      },
     },
     {
       sequelize,
       modelName: "Presensi",
-      tableName: "presensis", // opsional: sesuaikan dengan nama tabel di DB
-      timestamps: false,      // matikan createdAt dan updatedAt
+      tableName: "presensis",
     }
   );
 

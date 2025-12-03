@@ -1,10 +1,10 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -13,72 +13,82 @@ function LoginPage() {
     setError(null);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/auth/login",
-        { email, password }
-      );
+      const response = await axios.post('http://localhost:3001/api/auth/login', {
+        email,
+        password,
+      });
 
-      localStorage.setItem("token", response.data.token);
-      navigate("/dashboard");
+      const { token, user } = response.data;
+
+      // Simpan token & user di localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirect sesuai role
+      if (user.role === 'admin') {
+        navigate('/admin'); // AdminPage
+      } else if (user.role === 'mahasiswa') {
+        navigate('/presensi'); // PresensiPage
+      } else {
+        navigate('/dashboard'); // fallback halaman lain jika ada role baru
+      }
+
     } catch (err) {
-      setError(err.response ? err.response.data.message : "Login gagal");
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Login gagal. Periksa koneksi atau server.');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050a1a] text-cyan-300 p-6 grid-bg">
-      <style>{`
-        .grid-bg {
-          background-image: linear-gradient(#0d1b3a 1px, transparent 1px),
-                            linear-gradient(90deg, #0d1b3a 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-        .neon-shadow {
-          box-shadow: 0 0 15px #00eaff;
-        }
-        .neon-text {
-          text-shadow: 0 0 8px #00eaff;
-        }
-      `}</style>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          Login
+        </h2>
 
-      <div className="max-w-md mx-auto mt-24 p-10 bg-[#0b1124] rounded-xl neon-shadow">
-        <h2 className="text-3xl mb-6 text-center neon-text">LOGIN — CYBERPUNK</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
 
-        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
 
-          {/* EMAIL */}
-          <label className="block mb-2 mt-4">Email</label>
-          <input
-            type="email"
-            className="w-full p-3 rounded bg-[#091427] border border-cyan-400 text-cyan-300 neon-shadow"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          {/* PASSWORD */}
-          <label className="block mb-2 mt-4">Password</label>
-          <input
-            type="password"
-            className="w-full p-3 rounded bg-[#091427] border border-cyan-400 text-cyan-300 neon-shadow"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          {/* ERROR */}
-          {error && (
-            <p className="text-red-400 text-center mt-4 neon-text">{error}</p>
-          )}
-
-          {/* BUTTON */}
           <button
             type="submit"
-            className="w-full mt-6 py-3 bg-cyan-300 text-black rounded-lg font-bold neon-shadow hover:scale-105 transition"
+            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700"
           >
-            LOGIN
+            Login
           </button>
         </form>
+
+        {error && (
+          <p className="text-red-600 text-sm mt-4 text-center">{error}</p>
+        )}
       </div>
     </div>
   );
