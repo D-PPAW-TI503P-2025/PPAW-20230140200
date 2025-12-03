@@ -4,7 +4,11 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // kalau nanti mau ada relasi, tambahkan di sini
+      // Relasi User -> Presensi (One to Many)
+      User.hasMany(models.Presensi, {
+        foreignKey: 'userId',
+        as: 'presensi'
+      });
     }
   }
 
@@ -38,8 +42,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'User',
-      tableName: 'users', // pastikan sama dengan nama tabel di database
-      timestamps: false,  // ⛔ nonaktifkan createdAt dan updatedAt
+      tableName: 'users',
+      timestamps: false,
     }
   );
 

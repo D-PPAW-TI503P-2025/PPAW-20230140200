@@ -1,41 +1,62 @@
-const { Presensi } = require("../models");
+"use strict";
+
+const { Presensi, User } = require("../models");
 const { Op } = require("sequelize");
-const { format } = require("date-fns-tz");
 const timeZone = "Asia/Jakarta";
 
 exports.getDailyReport = async (req, res) => {
   try {
-    const { tanggalMulai, tanggalSelesai } = req.query;
+    const { nama, tanggal } = req.query;
 
-    if (!tanggalMulai || !tanggalSelesai) {
-      return res.status(400).json({ message: "Tanggal mulai dan selesai wajib diisi." });
+    let options = {
+      where: {},
+      include: [
+        {
+          model: User,
+          as: "user", // ⚠️ Tambahkan alias sesuai model
+          attributes: ["nama", "email", "role"], 
+        },
+      ],
+      order: [["checkIn", "DESC"]],
+    };
+
+    // Filter berdasarkan nama user
+    if (nama) {
+      options.include[0].where = {
+        nama: { [Op.like]: `%${nama}%` },
+      };
     }
 
-    const isValidDate = (val) => !isNaN(Date.parse(val));
-    if (!isValidDate(tanggalMulai) || !isValidDate(tanggalSelesai)) {
-      return res.status(400).json({ message: "Format tanggal tidak valid." });
+    // Filter berdasarkan tanggal
+    if (tanggal) {
+      const startOfDay = new Date(`${tanggal}T00:00:00+07:00`);
+      const endOfDay = new Date(`${tanggal}T23:59:59+07:00`);
+
+      options.where.checkIn = {
+        [Op.between]: [startOfDay, endOfDay],
+      };
     }
 
-    const data = await Presensi.findAll({
-      where: {
-        checkIn: {
-          [Op.between]: [new Date(tanggalMulai), new Date(tanggalSelesai)]
-        }
-      },
-      order: [["checkIn", "ASC"]]
+    const records = await Presensi.findAll(options);
+
+    if (records.length === 0) {
+      return res.status(404).json({
+        message: "Tidak ada data presensi ditemukan untuk filter yang diberikan.",
+      });
+    }
+
+    const reportDate = new Date().toLocaleDateString("id-ID", { timeZone });
+
+    res.json({
+      reportDate,
+      total: records.length,
+      data: records, 
     });
 
-    const formatted = data.map((item) => ({
-      id: item.id,
-      userId: item.userId,
-      nama: item.nama,
-      checkIn: item.checkIn ? format(item.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }) : null,
-      checkOut: item.checkOut ? format(item.checkOut, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }) : null
-    }));
-
-    res.json({ message: "Laporan presensi", data: formatted });
-
   } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan server", error: error.message });
+    res.status(500).json({
+      message: "Gagal mengambil laporan presensi.",
+      error: error.message,
+    });
   }
 };
