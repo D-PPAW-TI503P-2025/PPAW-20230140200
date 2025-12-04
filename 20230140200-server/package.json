@@ -2364,6 +2364,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
